@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointGreyCapture", "PointGreyCapture\PointGreyCapture.vcxproj", "{95F6F8A6-CE35-40C7-A1B8-7E7A3ED9F9AE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jpeglib", "jpeglib\jpeglib.vcxproj", "{2003D667-3404-44A7-B94F-6C683D185959}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{95F6F8A6-CE35-40C7-A1B8-7E7A3ED9F9AE}.Release|x64.Build.0 = Release|x64
 		{95F6F8A6-CE35-40C7-A1B8-7E7A3ED9F9AE}.Release|x86.ActiveCfg = Release|Win32
 		{95F6F8A6-CE35-40C7-A1B8-7E7A3ED9F9AE}.Release|x86.Build.0 = Release|Win32
+		{2003D667-3404-44A7-B94F-6C683D185959}.Debug|x64.ActiveCfg = Debug|x64
+		{2003D667-3404-44A7-B94F-6C683D185959}.Debug|x64.Build.0 = Debug|x64
+		{2003D667-3404-44A7-B94F-6C683D185959}.Debug|x86.ActiveCfg = Debug|Win32
+		{2003D667-3404-44A7-B94F-6C683D185959}.Debug|x86.Build.0 = Debug|Win32
+		{2003D667-3404-44A7-B94F-6C683D185959}.Release|x64.ActiveCfg = Release|x64
+		{2003D667-3404-44A7-B94F-6C683D185959}.Release|x64.Build.0 = Release|x64
+		{2003D667-3404-44A7-B94F-6C683D185959}.Release|x86.ActiveCfg = Release|Win32
+		{2003D667-3404-44A7-B94F-6C683D185959}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
