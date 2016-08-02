@@ -155,15 +155,12 @@
     <ClCompile Include="FrameCapture.cpp" />
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="simple_gui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameCapture.h" />
     <ClInclude Include="logger.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\jpeglib\jpeglib.vcxproj">
-      <Project>{2003d667-3404-44a7-b94f-6c683d185959}</Project>
-    </ProjectReference>
+    <ClInclude Include="simple_gui.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

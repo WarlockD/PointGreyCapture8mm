@@ -8,7 +8,7 @@
 
 #pragma comment(lib,"winmm.lib")
 #pragma comment(lib,"opengl32.lib")
-//#pragma comment(lib,"jpeg.lib")
+#pragma comment(lib,"jpeg.lib")
 #pragma comment(lib,"freetype.lib")
 
 
@@ -24,9 +24,29 @@
 #pragma comment(lib,"FlyCapture2_v140.lib")
 #pragma comment(lib,"opencv_world310.lib")
 #endif
+// constexpr range?
+template<typename T> class FixedRange {
+	T _min;
+	T _max;
+
+};
 
 
+class RangeConvert {
+	const uint32_t _imin;
+	const uint32_t _imax;;
+	const float _dmin;
+	const float _dmax;
+public:
+	constexpr RangeConvert(uint32_t imin, uint32_t imax, float dmin, float dmax) : _imin(imin), _imax(imax), _dmin(dmin), _dmax(dmax) {}
+	constexpr inline double operator()(size_t value) const {
+		return ((((float)value - (float)_imin) * (_dmax - _dmin)) / ((float)_imax - (float)_imin)) + _dmin;
+	}
+};
 
+RangeConvert ExposureConvert(1, 1023, -7.585f, 2.414f);
+RangeConvert ShutterConvert(1, 1253, 0.005f, 6.118f);
+RangeConvert GainConvert(0, 240, 0.000f, 23.997f);
 /** @brief Callback function for a button created by cv::createButton
 @param state current state of the button. It could be -1 for a push button, 0 or 1 for a check/radio box button.
 @param userdata The optional parameter.
@@ -85,18 +105,40 @@ void debugMenu() {
 
 
 }
+typedef union _AbsValueConversion
+{
+	unsigned long ulValue;
+	float fValue;
+} AbsValueConversion;
+struct exposure_decode {
+	uint32_t _raw;
+	//bool presence;
+//	bool abs_control;
+//	bool one_pushed;
+//	bool ON_OFF;
+//	bool A_M_Mode;
+	uint32_t High_value;
+	uint32_t Value;
+	exposure_decode(int raw) {
+		_raw = raw;
+		Value = _raw & 0x7FF;
+		High_value = (_raw >> 11) & 0xF;
+	}
+};
 void loadExposureSeq(std::vector<cv::Mat>& images, std::vector<float>& times){
 
 }
 double timestamp_to_float(int timestamp) {
-	int seconds = timestamp >> (13 + 12);
-	int cycles = (timestamp >> 12) & 0x1FFFF;
-	int parts = (timestamp) & 0xFFFF;
+	uint32_t seconds = (uint32_t)timestamp >> (13 + 12);
+	uint32_t cycles = (timestamp >> 12) & 0x1FFF;
+	uint32_t parts = (timestamp) & 0xFFF;
 	double ret = (float)seconds;
 	ret += 0.000125 * cycles;
+//	ret += (parts * (1.0 / 0.000125));
 	return ret;
 
 }
+
 void tempWindow() {
 	// Request a 24-bits depth buffer when creating the window
 //	sf::ContextSettings contextSettings;
@@ -129,11 +171,13 @@ void tempWindow() {
 	info.setCharacterSize(10);
 	info.setPosition(0, 0);
 	cap.StartCapture();
-
+	cap.setHDRMode(true);
+	int image_number = 0;
 	while (window.isOpen())
 	{
 		// Handle events
 		sf::Event event;
+		
 		while (window.pollEvent(event))
 		{
 			// Window closed or escape key pressed: exit
@@ -143,24 +187,47 @@ void tempWindow() {
 				window.close();
 				break;
 			}
-
+			
 			// Space key pressed: play
 			if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space))
 			{
+				switch (event.key.code) {
+				case sf::Keyboard::Num1:image_number = 0; break;
+				case sf::Keyboard::Num2:image_number = 1; break;
+				case sf::Keyboard::Num3:image_number = 2; break;
+				case sf::Keyboard::Num4:image_number = 3; break;
+				}
 			}
 		}
-		auto& raw_image = cap.captureFrame();
+		FlyCapture2::Image images[4];
+		for (int i = 0; i < 4; i++) {
+			images[i] = cap.captureFrame();
+		}
+		auto& raw_image = images[image_number];
+		auto meta = raw_image.GetMetadata();
+
 		FlyCapture2::Image rgbImage; 
 		//	raw_image.Convert(FlyCapture2::PIXEL_FORMAT_BGR, &rgbImage);
 		raw_image.Convert(FlyCapture2::PIXEL_FORMAT_RGBU, &rgbImage);
-		auto meta = raw_image.GetMetadata();
+	
 		std::stringstream ss;
+		AbsValueConversion convert; 
+		FlyCapture2::TimeStamp timestamp;
+	//	if (embeddedInfo.timestamp.available) embeddedInfo.timestamp.onOff = true;
+	//	if (embeddedInfo.gain.available) embeddedInfo.gain.onOff = true;
+	//	if (embeddedInfo.shutter.available) embeddedInfo.shutter.onOff = true;
+	//	if (embeddedInfo.exposure.available) embeddedInfo.exposure.onOff = true;
+	//	if (embeddedInfo.brightness.available) embeddedInfo.brightness.onOff = true;
+	//	if (embeddedInfo.whiteBalance.available) embeddedInfo.whiteBalance.onOff = true;
 
-		float test = *((float*)(&meta.embeddedShutter));
-		float test2 = *((float*)(&meta.embeddedExposure));
-		float test3 = meta.embeddedGain * 0.035f;
-		ss << " T:" << std::fixed << std::setprecision(2) << timestamp_to_float(meta.embeddedTimeStamp);
-		ss << " E:" << std::fixed << std::setprecision(2) << timestamp_to_float(meta.embeddedExposure);
+		ss << " T:" << std::fixed << std::setprecision(2) << timestamp_to_float(meta.embeddedTimeStamp) << " 0x" << std::hex << meta.embeddedTimeStamp << std::endl;
+		double shutter = ShutterConvert(meta.embeddedShutter & 0x7FF);
+		ss << " Shutter:"  << std::setprecision(5) << std::fixed << shutter << " 0x" << std::hex << meta.embeddedShutter << std::endl;
+		double gain = GainConvert(meta.embeddedGain & 0x7FF);
+		ss << " Gain:"  << std::setprecision(5) << std::fixed << gain << " 0x" << std::hex << meta.embeddedGain << std::endl;
+		double exposure = ExposureConvert(meta.embeddedExposure & 0x7FF); // 5e-6; // 0.005 ms
+		ss << " Exposure:"<< std::setprecision(5) << std::fixed  << exposure << " 0x" << std::hex << meta.embeddedExposure << std::endl;
+
 		info.setString(ss.str());
 
 		// convert to OpenCV Mat
@@ -170,6 +237,7 @@ void tempWindow() {
 		
 		textureImage.update(image);
 		t_imageWindow.setTexture(textureImage, true);
+		t_imageWindow.setScale(1024.0f/1920.0f, 768.0f / 1200.0f);
 		// Clear the window
 		window.clear(sf::Color(50, 200, 50));
 		window.draw(t_imageWindow);
@@ -178,6 +246,7 @@ void tempWindow() {
 	}
 
 	cap.StopCapture();
+	cap.disconnect();
 }
 int main(int argc, const char* argv[]) {
 	logging::init_cerr();

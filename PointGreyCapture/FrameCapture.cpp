@@ -257,10 +257,13 @@ bool FrameCapture::initCamera() {
 	error = _camera.GetEmbeddedImageInfo(&embeddedInfo);
 	if (error != PGRERROR_OK) PrintError(error);
 
+
 	if (embeddedInfo.timestamp.available) embeddedInfo.timestamp.onOff = true;
-	if (embeddedInfo.exposure.available) embeddedInfo.exposure.onOff = true;
-	if (embeddedInfo.shutter.available) embeddedInfo.shutter.onOff = true;
 	if (embeddedInfo.gain.available) embeddedInfo.gain.onOff = true;
+	if (embeddedInfo.shutter.available) embeddedInfo.shutter.onOff = true;
+	if (embeddedInfo.exposure.available) embeddedInfo.exposure.onOff = true;
+	if (embeddedInfo.brightness.available) embeddedInfo.brightness.onOff = true;
+	if (embeddedInfo.whiteBalance.available) embeddedInfo.whiteBalance.onOff = true;
 
 	error = _camera.SetEmbeddedImageInfo(&embeddedInfo);
 	if (error != PGRERROR_OK)
@@ -268,6 +271,7 @@ bool FrameCapture::initCamera() {
 		PrintError(error);
 		return false;
 	}
+
 
 	return true;
 }
