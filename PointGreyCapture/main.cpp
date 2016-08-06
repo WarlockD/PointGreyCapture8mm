@@ -109,7 +109,8 @@ typedef union _AbsValueConversion
 {
 	unsigned long ulValue;
 	float fValue;
-} AbsValueConversion;
+} AbsValueConversion;
+
 struct exposure_decode {
 	uint32_t _raw;
 	//bool presence;
